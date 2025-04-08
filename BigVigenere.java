@@ -1,12 +1,15 @@
-import java.util.Scanner;
-
 public class BigVigenere {
 
-    public static void main(String[] args) {
+    private int[] key;
+    private char[][] matrizAlfabeto;
+    private String mensajeCifradoGlobal = "";
 
-        Scanner scanner = new Scanner(System.in);
+    public BigVigenere(String clave) {
+        this.key = new int[clave.length()];
+        for (int i = 0; i < clave.length(); i++) {
+            key[i] = (int) clave.charAt(i);
+        }
 
-        char[][] matrizAlfabeto = new char[64][64];
         char[] alfabetoMinusculas = {'a','b','c','d','e','f','g','h','i','j','k','l','m',
                                      'n','o','p','q','r','s','t','u','v','w','x','y','z'};
 
@@ -16,6 +19,8 @@ public class BigVigenere {
         char[] numeros = {'0','1','2','3','4','5','6','7','8','9'};
 
         int totalCaracteres = alfabetoMinusculas.length + alfabetoMayusculas.length + numeros.length;
+
+        matrizAlfabeto = new char[64][64];
 
         for (int fila = 0; fila < 64; fila++) {
             int numero = fila;
@@ -31,48 +36,18 @@ public class BigVigenere {
                 numero++;
             }
         }
-
-        System.out.println("¿Cifrar o descifrar?");
-        System.out.println("1: cifrar");
-        System.out.println("2: descifrar");
-        int opcion = scanner.nextInt();
-        scanner.nextLine();
-
-        if (opcion == 1) {
-            System.out.println("Escribe el texto a cifrar:");
-            String mensaje = scanner.nextLine();
-            System.out.println("Clave para cifrar:");
-            String clave = scanner.nextLine();
-
-            String mensajeCifrado = cifrarVigenere(mensaje, clave, matrizAlfabeto);
-            System.out.println("Mensaje cifrado: " + mensajeCifrado);
-
-        } else if (opcion == 2) {
-            System.out.println("Escribe el texto cifrado:");
-            String mensajeCifrado = scanner.nextLine();
-            System.out.println("Clave para descifrar:");
-            String clave = scanner.nextLine();
-
-            String mensajeDescifrado = descifrarVigenere(mensajeCifrado, clave, matrizAlfabeto);
-            System.out.println("Mensaje descifrado: " + mensajeDescifrado);
-
-        } else {
-            System.out.println("Opción no válida.");
-        }
-
-        scanner.close();
     }
 
-    public static String cifrarVigenere(String mensaje, String clave, char[][] matrizAlfabeto) {
+    public String encrypt(String mensaje) {
         StringBuilder mensajeCifrado = new StringBuilder();
-        int longitudClave = clave.length();
+        int longitudClave = key.length;
 
         for (int i = 0; i < mensaje.length(); i++) {
             char caracterMensaje = mensaje.charAt(i);
-            char caracterClave = clave.charAt(i % longitudClave);
+            char caracterClave = (char) key[i % longitudClave];
 
-            int fila = obtenerFila(caracterMensaje, matrizAlfabeto);
-            int columna = obtenerColumna(caracterClave, matrizAlfabeto);
+            int fila = obtenerFila(caracterMensaje);
+            int columna = obtenerColumna(caracterClave);
 
             if (fila == -1 || columna == -1) {
                 mensajeCifrado.append(caracterMensaje);
@@ -81,18 +56,19 @@ public class BigVigenere {
             }
         }
 
-        return mensajeCifrado.toString();
+        mensajeCifradoGlobal = mensajeCifrado.toString(); // Guardar para uso en búsqueda
+        return mensajeCifradoGlobal;
     }
 
-    public static String descifrarVigenere(String mensajeCifrado, String clave, char[][] matrizAlfabeto) {
+    public String decrypt(String mensajeCifrado) {
         StringBuilder mensajeDescifrado = new StringBuilder();
-        int longitudClave = clave.length();
+        int longitudClave = key.length;
 
         for (int i = 0; i < mensajeCifrado.length(); i++) {
             char caracterMensaje = mensajeCifrado.charAt(i);
-            char caracterClave = clave.charAt(i % longitudClave);
+            char caracterClave = (char) key[i % longitudClave];
 
-            int columna = obtenerColumna(caracterClave, matrizAlfabeto);
+            int columna = obtenerColumna(caracterClave);
 
             for (int fila = 0; fila < 64; fila++) {
                 if (matrizAlfabeto[fila][columna] == caracterMensaje) {
@@ -105,7 +81,7 @@ public class BigVigenere {
         return mensajeDescifrado.toString();
     }
 
-    public static int obtenerFila(char caracter, char[][] matrizAlfabeto) {
+    private int obtenerFila(char caracter) {
         for (int columna = 0; columna < 64; columna++) {
             if (matrizAlfabeto[0][columna] == caracter) {
                 return columna;
@@ -114,12 +90,24 @@ public class BigVigenere {
         return -1;
     }
 
-    public static int obtenerColumna(char caracter, char[][] matrizAlfabeto) {
+    private int obtenerColumna(char caracter) {
         for (int columna = 0; columna < 64; columna++) {
             if (matrizAlfabeto[0][columna] == caracter) {
                 return columna;
             }
         }
         return -1;
+    }
+
+    // Ahora devuelve el carácter en la posición del mensaje cifrado
+    public char search(int position) {
+        if (position >= 0 && position < mensajeCifradoGlobal.length()) {
+            return mensajeCifradoGlobal.charAt(position);
+        }
+        return '?';
+    }
+
+    public char optimalSearch(int position) {
+        return search(position); // Mismo resultado pero nombre distinto
     }
 }
